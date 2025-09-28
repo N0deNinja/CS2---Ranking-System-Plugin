@@ -40,7 +40,6 @@ public class RankingSystemBySeen : BasePlugin
     public override void Unload(bool hotReload)
     {
         _storage?.SaveLeaderboard();
-        Console.WriteLine("[RankingSystem] Leaderboard saved on unload.");
     }
 
     private HookResult OnPlayerDeath(EventPlayerDeath ev, GameEventInfo info)

@@ -21,7 +21,6 @@ public class StorageRepository
 
     public StorageRepository()
     {
-        Console.WriteLine("[Ranking System] - StorageRepository initialized");
         Init();
     }
 
@@ -37,11 +36,6 @@ public class StorageRepository
                 if (data != null)
                 {
                     Leaderboard = data;
-                    Console.WriteLine($"[Ranking System] - Loaded {Leaderboard.Count} players from {RankingJsonPath}");
-                }
-                else
-                {
-                    Console.WriteLine("[Ranking System] - No data found in JSON, starting fresh");
                 }
             }
             catch (Exception ex)
@@ -49,27 +43,16 @@ public class StorageRepository
                 Console.WriteLine($"[Ranking System] - Failed to load leaderboard: {ex.Message}");
             }
         }
-        else
-        {
-            Console.WriteLine("[Ranking System] - Missing ranking.json, starting fresh");
-        }
     }
 
     public void InitPlayer(ulong SteamId)
     {
-        if (Leaderboard.TryAdd(SteamId, new UserItem
+        Leaderboard.TryAdd(SteamId, new UserItem
         {
             Score = 0,
             BiggestKS = 0,
             MessagesAmount = 0
-        }))
-        {
-            Console.WriteLine($"[Ranking System] - Initialized player {SteamId}");
-        }
-        else
-        {
-            Console.WriteLine($"[Ranking System] - Player {SteamId} already initialized");
-        }
+        });
     }
 
     private bool UserExists(ulong SteamId)
@@ -104,7 +87,6 @@ public class StorageRepository
 
         if (SteamId == 0)
         {
-            Console.WriteLine("[Ranking System] - Ignoring invalid SteamId (0)");
             return;
         }
 
@@ -119,7 +101,6 @@ public class StorageRepository
         {
             userItem.Score += points;
             User.Score += points;
-            Console.WriteLine($"[Ranking System] - {desc} ({points} points). New Score: {userItem.Score}");
 
             SaveLeaderboard();
         }

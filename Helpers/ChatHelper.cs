@@ -4,7 +4,7 @@ namespace RankingSystemBySeen.Helpers;
 
 public static class ChatHelper
 {
-    private static readonly string Prefix = ""; // green prefix
+    private static readonly string Prefix = "";
 
     public static void PrintRankMessage(CCSPlayerController Player, int Score, int Position, int TotalPlayers)
     {
