@@ -35,6 +35,8 @@ public class RankingSystemBySeen : BasePlugin
         RegisterEventHandler<EventRoundEnd>(OnRoundEnds);
         AddCommand("rank", "Prints the rank message to chat", OnRankCommand);
         AddCommand("!rank", "Prints the rank message to chat", OnRankCommand);
+        AddCommand("!top15", "Prints the top 15 list", OnTop15Command);
+        AddCommand("top15", "Prints the top 15 list", OnTop15Command);
     }
 
     public override void Unload(bool hotReload)
@@ -55,6 +57,8 @@ public class RankingSystemBySeen : BasePlugin
         return HookResult.Continue;
     }
 
+
+
     private void OnRankCommand(CCSPlayerController? player, CommandInfo command)
     {
         if (player == null || !player.IsValid || _storage == null)
@@ -65,6 +69,14 @@ public class RankingSystemBySeen : BasePlugin
 
 
         ChatHelper.PrintRankMessage(player, Score, Position, TotalPlayers);
+    }
+
+    private void OnTop15Command(CCSPlayerController? player, CommandInfo command)
+    {
+        if (player == null || !player.IsValid || _storage == null)
+            return;
+
+        ChatHelper.PrintTopList(player, _storage.GetSortedUserItems());
     }
     private HookResult OnRoundEnds(EventRoundEnd ev, GameEventInfo info)
     {

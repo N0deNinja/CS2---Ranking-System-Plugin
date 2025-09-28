@@ -9,6 +9,8 @@ namespace RankingSystemBySeen.Storage;
 
 public class UserItem
 {
+    public required string Name { get; set; }
+    public required ulong SteamID { get; set; }
     public int Score { get; set; }
     public int BiggestKS { get; set; }
     public int MessagesAmount { get; set; }
@@ -45,10 +47,12 @@ public class StorageRepository
         }
     }
 
-    public void InitPlayer(ulong SteamId)
+    public void InitPlayer(ulong SteamId, string Name)
     {
         Leaderboard.TryAdd(SteamId, new UserItem
         {
+            SteamID = SteamId,
+            Name = Name,
             Score = 0,
             BiggestKS = 0,
             MessagesAmount = 0
@@ -61,6 +65,12 @@ public class StorageRepository
         return Leaderboard.ContainsKey(SteamId);
     }
 
+    public UserItem[] GetSortedUserItems()
+    {
+        return [.. Leaderboard
+            .OrderByDescending(x => x.Value.Score)
+            .Select(x => x.Value)];
+    }
     public (int Score, int Position, int TotalPlayers) GetPlayerInfo(ulong steamId)
     {
         if (!Leaderboard.ContainsKey(steamId))
@@ -79,6 +89,11 @@ public class StorageRepository
         return (playerEntry.Score, playerEntry.Position, Leaderboard.Count);
     }
 
+    public int GetPositionOfPlayer(ulong SteamID)
+    {
+        return Leaderboard.Keys.ToList().IndexOf(SteamID);
+    }
+
 
     // Save after every update
     public void UpdatePlayer(CCSPlayerController User, RankingActions Action)
@@ -91,7 +106,7 @@ public class StorageRepository
         }
 
         if (!UserExists(SteamId))
-            InitPlayer(SteamId);
+            InitPlayer(SteamId, User.PlayerName);
 
         var userItem = Leaderboard[SteamId];
         var (points, desc) = RankingAction.GetAction(Action);
@@ -104,6 +119,7 @@ public class StorageRepository
 
             SaveLeaderboard();
         }
+
     }
 
 
