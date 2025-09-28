@@ -31,7 +31,9 @@ Players gain or lose points based on kills, deaths, and round results. Rankings 
    ```
    csgo/addons/counterstrikesharp/plugins/
    ```
-4. Restart your server (or reload plugins).
+4. Create RankingSystemBySeen folder in csgo/addons/counterstrikesharp/configs/plugins/
+5. Inside that folder create json file RankingSystemBySeen.json ( to store the scores in) just put empty object there {}
+6. Restart your server (or reload plugins).
 
 On successful load, you should see:
 
