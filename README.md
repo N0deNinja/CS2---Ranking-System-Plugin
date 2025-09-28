@@ -25,7 +25,7 @@ Players gain or lose points based on kills, deaths, and round results. Rankings 
 
 ## 📦 Installation
 
-1. Make sure you are running a CS2 server with [CounterStrikeSharp](https://docs.cssharp.dev/) installed.
+1. Make sure you are running a CS2 server with [CounterStrikeSharp](https://docs.cssharp.dev/) and [Metamod](https://cs2.poggu.me/metamod/installation/) installed.
 2. Download the compiled plugin `.dll` file (or build it yourself).
 3. Place the `.dll` in your server’s:
    ```
