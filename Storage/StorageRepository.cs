@@ -74,9 +74,8 @@ public class StorageRepository
 
     private bool UserExists(ulong SteamId)
     {
-        var exists = Leaderboard.TryGetValue(SteamId, out var _);
-        Console.WriteLine($"[Ranking System] - Checked if player {SteamId} exists: {exists}");
-        return exists;
+
+        return Leaderboard.ContainsKey(SteamId);
     }
 
 
@@ -92,7 +91,7 @@ public class StorageRepository
             return;
         }
 
-        if (!Leaderboard.ContainsKey(SteamId))
+        if (!UserExists(SteamId))
             InitPlayer(SteamId);
 
         var userItem = Leaderboard[SteamId];
