@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
 using RankingSystemBySeen.Points;
@@ -8,36 +9,49 @@ namespace RankingSystemBySeen.Storage;
 
 public class UserItem
 {
-    public int Score;
-    public int BiggestKS;
-    public int MessagesAmount;
+    public int Score { get; set; }
+    public int BiggestKS { get; set; }
+    public int MessagesAmount { get; set; }
 }
-
-
 public class StorageRepository
 {
     private Dictionary<ulong, UserItem> Leaderboard = [];
-    private readonly string RankingJsonPath = "ranking.json";
+    private readonly string RankingJsonPath =
+   Path.Combine(Server.GameDirectory, "csgo", "addons", "counterstrikesharp", "configs", "plugins", "RankingSystemBySeen", "RankingSystemBySeen.json");
 
     public StorageRepository()
     {
+        Console.WriteLine("[Ranking System] - StorageRepository initialized");
         Init();
     }
 
     private void Init()
     {
+        Console.WriteLine("[Ranking System] - Loading leaderboard from JSON...");
         if (File.Exists(RankingJsonPath))
         {
-            var json = File.ReadAllText(RankingJsonPath);
-            var data = JsonSerializer.Deserialize<Dictionary<ulong, UserItem>>(json);
-            if (data != null)
+            try
             {
-                Leaderboard = data;
+                var json = File.ReadAllText(RankingJsonPath);
+                var data = JsonSerializer.Deserialize<Dictionary<ulong, UserItem>>(json);
+                if (data != null)
+                {
+                    Leaderboard = data;
+                    Console.WriteLine($"[Ranking System] - Loaded {Leaderboard.Count} players from {RankingJsonPath}");
+                }
+                else
+                {
+                    Console.WriteLine("[Ranking System] - No data found in JSON, starting fresh");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Ranking System] - Failed to load leaderboard: {ex.Message}");
             }
         }
         else
         {
-            Console.WriteLine("[Ranking System] - Missing ranking.json");
+            Console.WriteLine("[Ranking System] - Missing ranking.json, starting fresh");
         }
     }
 
@@ -60,52 +74,59 @@ public class StorageRepository
 
     private bool UserExists(ulong SteamId)
     {
-        return Leaderboard.TryGetValue(SteamId, out var user);
+        var exists = Leaderboard.TryGetValue(SteamId, out var _);
+        Console.WriteLine($"[Ranking System] - Checked if player {SteamId} exists: {exists}");
+        return exists;
     }
 
+
+
+    // Save after every update
     public void UpdatePlayer(CCSPlayerController User, RankingActions Action)
     {
         var SteamId = User.SteamID;
 
+        if (SteamId == 0)
+        {
+            Console.WriteLine("[Ranking System] - Ignoring invalid SteamId (0)");
+            return;
+        }
+
         if (!Leaderboard.ContainsKey(SteamId))
             InitPlayer(SteamId);
 
-        if (UserExists(SteamId))
+        var userItem = Leaderboard[SteamId];
+        var (points, desc) = RankingAction.GetAction(Action);
+
+        if (Action is RankingActions.Kill or RankingActions.Death or RankingActions.RoundWin or RankingActions.RoundLoss)
         {
-            var UserItem = Leaderboard[SteamId];
+            userItem.Score += points;
+            User.Score += points;
+            Console.WriteLine($"[Ranking System] - {desc} ({points} points). New Score: {userItem.Score}");
 
-            var (points, _) = RankingAction.GetAction(Action);
-
-            // apply score only for certain actions
-            if (Action is RankingActions.Kill
-                      or RankingActions.Death
-                      or RankingActions.RoundWin
-                      or RankingActions.RoundLoss)
-            {
-                UserItem.Score += points;
-            }
+            SaveLeaderboard();
         }
     }
+
 
     public void SaveLeaderboard()
     {
         try
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
+            var directory = Path.GetDirectoryName(RankingJsonPath);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory!);
 
+            var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(Leaderboard, options);
             File.WriteAllText(RankingJsonPath, json);
 
-            Console.WriteLine("[Ranking System] - Leaderboard saved to JSON");
+            Console.WriteLine($"[Ranking System] - Leaderboard saved. Players stored: {Leaderboard.Count}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Ranking System] - Error saving leaderboard: {ex.Message}");
         }
     }
-
 
 }

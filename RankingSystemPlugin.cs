@@ -34,6 +34,12 @@ public class RankingSystemBySeen : BasePlugin
         RegisterEventHandler<EventRoundEnd>(OnRoundEnds);
     }
 
+    public override void Unload(bool hotReload)
+    {
+        _storage?.SaveLeaderboard();
+        Console.WriteLine("[RankingSystem] Leaderboard saved on unload.");
+    }
+
     private HookResult OnPlayerDeath(EventPlayerDeath ev, GameEventInfo info)
     {
         var attacker = ev.Attacker;
@@ -49,6 +55,7 @@ public class RankingSystemBySeen : BasePlugin
 
     private HookResult OnRoundEnds(EventRoundEnd ev, GameEventInfo info)
     {
+        _storage?.SaveLeaderboard();
         if (ev.Winner == 0)
             return HookResult.Continue;
 
