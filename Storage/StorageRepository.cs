@@ -78,6 +78,23 @@ public class StorageRepository
         return Leaderboard.ContainsKey(SteamId);
     }
 
+    public (int Score, int Position, int TotalPlayers) GetPlayerInfo(ulong steamId)
+    {
+        if (!Leaderboard.ContainsKey(steamId))
+            return (0, 0, Leaderboard.Count);
+
+        // Sort by score descending
+        var sorted = Leaderboard
+            .OrderByDescending(x => x.Value.Score)
+            .Select((x, i) => new { SteamId = x.Key, Score = x.Value.Score, Position = i + 1 })
+            .ToList();
+
+        var playerEntry = sorted.FirstOrDefault(x => x.SteamId == steamId);
+        if (playerEntry == null)
+            return (0, 0, Leaderboard.Count);
+
+        return (playerEntry.Score, playerEntry.Position, Leaderboard.Count);
+    }
 
 
     // Save after every update
@@ -96,6 +113,7 @@ public class StorageRepository
 
         var userItem = Leaderboard[SteamId];
         var (points, desc) = RankingAction.GetAction(Action);
+        User.PrintToChat(desc);
 
         if (Action is RankingActions.Kill or RankingActions.Death or RankingActions.RoundWin or RankingActions.RoundLoss)
         {
@@ -106,6 +124,7 @@ public class StorageRepository
             SaveLeaderboard();
         }
     }
+
 
 
     public void SaveLeaderboard()

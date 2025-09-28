@@ -3,6 +3,7 @@ using RankingSystemBySeen.Storage;
 using RankingSystemBySeen.Handlers;
 using RankingSystemBySeen.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Commands;
 
 namespace RankingSystemBySeen;
 
@@ -32,6 +33,8 @@ public class RankingSystemBySeen : BasePlugin
 
         RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
         RegisterEventHandler<EventRoundEnd>(OnRoundEnds);
+        AddCommand("rank", "Prints the rank message to chat", OnRankCommand);
+        AddCommand("!rank", "Prints the rank message to chat", OnRankCommand);
     }
 
     public override void Unload(bool hotReload)
@@ -53,6 +56,17 @@ public class RankingSystemBySeen : BasePlugin
         return HookResult.Continue;
     }
 
+    private void OnRankCommand(CCSPlayerController? player, CommandInfo command)
+    {
+        if (player == null || !player.IsValid || _storage == null)
+            return;
+
+        var steamId = player.SteamID;
+        var (Score, Position, TotalPlayers) = _storage.GetPlayerInfo(steamId);
+
+
+        ChatHelper.PrintRankMessage(player, Score, Position, TotalPlayers);
+    }
     private HookResult OnRoundEnds(EventRoundEnd ev, GameEventInfo info)
     {
         _storage?.SaveLeaderboard();
